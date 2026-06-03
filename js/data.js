@@ -60,16 +60,16 @@ const XP_REWARDS = {scout:5,fighter:10,heavy:18,elite:30,bomber:14,phantom:25,bo
 
 // --- Galaxy Regions ---
 const GALAXY_REGIONS = [
-    { name:'Cinturão de Asteroides', stages:[1,2,3,4], bgColor1:'#05060f', bgColor2:'#0a0d1a', nebulaColor:'rgba(0,229,255,0.03)', starColor:'#c8d6e5', description:'Região inicial.' },
-    { name:'Nebulosa Vermelha', stages:[5,6,7,8], bgColor1:'#0f0508', bgColor2:'#1a0a0d', nebulaColor:'rgba(255,23,68,0.04)', starColor:'#ffcdd2', description:'Fighters agressivos.' },
-    { name:'Vórtice Solar', stages:[9,10,11,12], bgColor1:'#0f0a02', bgColor2:'#1a1205', nebulaColor:'rgba(255,152,0,0.04)', starColor:'#ffe0b2', description:'Heavies blindados.' },
-    { name:'Setor Proibido', stages:[13,14,15,16], bgColor1:'#08050f', bgColor2:'#0d0a1a', nebulaColor:'rgba(179,136,255,0.05)', starColor:'#d1c4e9', description:'Bombers e elites.' },
-    { name:'Trono do Universo', stages:[17,18,19,20], bgColor1:'#050f0a', bgColor2:'#0a1a12', nebulaColor:'rgba(105,240,174,0.04)', starColor:'#b2dfdb', description:'Onde o Imperador reside.' },
-    { name:'Fronteira Sombria', stages:[21,22,23,24], bgColor1:'#020005', bgColor2:'#05020a', nebulaColor:'rgba(100,0,255,0.05)', starColor:'#9c27b0', description:'A luz quase não alcança.' },
-    { name:'Cemitério de Naves', stages:[25,26,27,28], bgColor1:'#0a0a0a', bgColor2:'#141414', nebulaColor:'rgba(150,150,150,0.05)', starColor:'#78909c', description:'Escombros e morte.' },
-    { name:'Abismo Cósmico', stages:[29,30,31,32], bgColor1:'#001015', bgColor2:'#002025', nebulaColor:'rgba(0,150,255,0.05)', starColor:'#00bcd4', description:'O frio absoluto.' },
-    { name:'Dimensão Fraturada', stages:[33,34,35,36], bgColor1:'#1a001a', bgColor2:'#330033', nebulaColor:'rgba(255,0,255,0.05)', starColor:'#e040fb', description:'A realidade quebra aqui.' },
-    { name:'O Verdadeiro Vazio', stages:[37,38,39,40], bgColor1:'#000000', bgColor2:'#020202', nebulaColor:'rgba(255,0,0,0.05)', starColor:'#ff1744', description:'O fim de tudo.' }
+    { name:'Cinturão de Asteroides', stages:[1,2,3,4], bgColor1:'#05060f', bgColor2:'#0a0d1a', nebulaColor:'rgba(0,229,255,0.03)', starColor:'#c8d6e5', description:'Região inicial.', bgImage:'cinturao_asteroides' },
+    { name:'Nebulosa Vermelha', stages:[5,6,7,8], bgColor1:'#0f0508', bgColor2:'#1a0a0d', nebulaColor:'rgba(255,23,68,0.04)', starColor:'#ffcdd2', description:'Fighters agressivos.', bgImage:'nebulosa_vermelha' },
+    { name:'Vórtice Solar', stages:[9,10,11,12], bgColor1:'#0f0a02', bgColor2:'#1a1205', nebulaColor:'rgba(255,152,0,0.04)', starColor:'#ffe0b2', description:'Heavies blindados.', bgImage:'vortice_solar' },
+    { name:'Setor Proibido', stages:[13,14,15,16], bgColor1:'#08050f', bgColor2:'#0d0a1a', nebulaColor:'rgba(179,136,255,0.05)', starColor:'#d1c4e9', description:'Bombers e elites.', bgImage:'setor_proibido' },
+    { name:'Trono do Universo', stages:[17,18,19,20], bgColor1:'#050f0a', bgColor2:'#0a1a12', nebulaColor:'rgba(105,240,174,0.04)', starColor:'#b2dfdb', description:'Onde o Imperador reside.', bgImage:'trono_universo' },
+    { name:'Fronteira Sombria', stages:[21,22,23,24], bgColor1:'#020005', bgColor2:'#05020a', nebulaColor:'rgba(100,0,255,0.05)', starColor:'#9c27b0', description:'A luz quase não alcança.', bgImage:'fronteira_sombria' },
+    { name:'Cemitério de Naves', stages:[25,26,27,28], bgColor1:'#0a0a0a', bgColor2:'#141414', nebulaColor:'rgba(150,150,150,0.05)', starColor:'#78909c', description:'Escombros e morte.', bgImage:'cemiterio_naves' },
+    { name:'Abismo Cósmico', stages:[29,30,31,32], bgColor1:'#001015', bgColor2:'#002025', nebulaColor:'rgba(0,150,255,0.05)', starColor:'#00bcd4', description:'O frio absoluto.', bgImage:'abismo_cosmico' },
+    { name:'Dimensão Fraturada', stages:[33,34,35,36], bgColor1:'#1a001a', bgColor2:'#330033', nebulaColor:'rgba(255,0,255,0.05)', starColor:'#e040fb', description:'A realidade quebra aqui.', bgImage:'dimensao_fraturada' },
+    { name:'O Verdadeiro Vazio', stages:[37,38,39,40], bgColor1:'#000000', bgColor2:'#020202', nebulaColor:'rgba(255,0,0,0.05)', starColor:'#ff1744', description:'O fim de tudo.', bgImage:'verdadeiro_vazio' }
 ];
 
 function getRegionForStage(stage){const s=((stage-1)%40)+1;for(const r of GALAXY_REGIONS){if(r.stages.includes(s))return r;}return GALAXY_REGIONS[0];}

@@ -72,12 +72,82 @@ function drawStars(){
     ctx.globalAlpha=1;
 }
 
+// --- Helper functions for background ---
+function hexToRgba(hex, alpha) {
+    const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    const fullHex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex);
+    return result 
+        ? `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`
+        : `rgba(0, 0, 0, ${alpha})`;
+}
+
+function drawBackgroundImage(img) {
+    const isVideo = img instanceof HTMLVideoElement;
+    const w = isVideo ? img.videoWidth : img.width;
+    const h = isVideo ? img.videoHeight : img.height;
+
+    // Safety check if media dimensions are not yet available
+    if (w === 0 || h === 0) return;
+
+    const canvasRatio = canvas.width / canvas.height;
+    const imgRatio = w / h;
+    let sx, sy, sw, sh;
+    if (imgRatio > canvasRatio) {
+        sh = h;
+        sw = h * canvasRatio;
+        sx = (w - sw) / 2;
+        sy = 0;
+    } else {
+        sw = w;
+        sh = w / canvasRatio;
+        sx = 0;
+        sy = (h - sh) / 2;
+    }
+
+    // Play video only when gameplay is active, pause when game is paused/menus
+    if (isVideo) {
+        const isGameplayActive = gameState.phase === 'playing' || gameState.phase === 'dying' || gameState.phase === 'winning';
+        if (isGameplayActive) {
+            if (img.paused && !img.ended) {
+                img.play().catch(e => console.log("Video playback deferred:", e));
+            }
+        } else {
+            if (!img.paused) {
+                img.pause();
+            }
+        }
+    }
+
+    // Draw with a 10px bleed margin to prevent black edges during screen shake
+    ctx.drawImage(img, sx, sy, sw, sh, -10 + shakeX, -10 + shakeY, canvas.width + 20, canvas.height + 20);
+}
+
 // --- Dynamic Background ---
 function drawBackground(){
     const region=getRegionForStage(gameState.stage);
-    const grad=ctx.createLinearGradient(0,0,0,canvas.height);
-    grad.addColorStop(0,region.bgColor1);grad.addColorStop(1,region.bgColor2);
-    ctx.fillStyle=grad;ctx.fillRect(0,0,canvas.width,canvas.height);
+    const bgImg = BACKGROUNDS[region.bgImage];
+    
+    // Pause any other loaded background videos to optimize CPU and memory
+    for (const key in BACKGROUNDS) {
+        const item = BACKGROUNDS[key];
+        if (item instanceof HTMLVideoElement && item !== bgImg && !item.paused) {
+            item.pause();
+        }
+    }
+
+    if(bgImg) {
+        drawBackgroundImage(bgImg);
+        const overlayGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        overlayGrad.addColorStop(0, hexToRgba(region.bgColor1, 0.65));
+        overlayGrad.addColorStop(1, hexToRgba(region.bgColor2, 0.85));
+        ctx.fillStyle = overlayGrad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+        const grad=ctx.createLinearGradient(0,0,0,canvas.height);
+        grad.addColorStop(0,region.bgColor1);grad.addColorStop(1,region.bgColor2);
+        ctx.fillStyle=grad;ctx.fillRect(0,0,canvas.width,canvas.height);
+    }
     drawNebulaEffects(region);
 }
 

@@ -1,5 +1,7 @@
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let soundEnabled = true;
+let sfxVolume = 0.7;
+let musicVolume = 0.7;
 
 const soundCache = {};
 const soundFiles = {
@@ -32,6 +34,35 @@ for (const [key, path] of Object.entries(soundFiles)) {
     }
 }
 
+function saveAudioSettings() {
+    try {
+        localStorage.setItem('nebula_assault_audio_settings', JSON.stringify({
+            soundEnabled,
+            sfxVolume,
+            musicVolume
+        }));
+    } catch(e) {
+        console.warn('Failed to save audio settings', e);
+    }
+}
+
+function loadAudioSettings() {
+    try {
+        const raw = localStorage.getItem('nebula_assault_audio_settings');
+        if (raw) {
+            const settings = JSON.parse(raw);
+            if (settings.soundEnabled !== undefined) soundEnabled = settings.soundEnabled;
+            if (settings.sfxVolume !== undefined) sfxVolume = settings.sfxVolume;
+            if (settings.musicVolume !== undefined) musicVolume = settings.musicVolume;
+        }
+    } catch(e) {
+        console.warn('Failed to load audio settings', e);
+    }
+}
+
+// Load configurations immediately
+loadAudioSettings();
+
 function playSound(type) {
     if (!soundEnabled) return;
     try {
@@ -39,7 +70,7 @@ function playSound(type) {
         if (cached) {
             // Clone the audio node so the same sound can overlap when triggered rapidly
             const playNode = cached.cloneNode();
-            playNode.volume = soundVolumes[type] || 0.05;
+            playNode.volume = (soundVolumes[type] || 0.05) * sfxVolume;
             playNode.play().catch(e => console.warn(`Sound ${type} playback blocked/failed:`, e));
         }
     } catch (e) {
@@ -60,22 +91,78 @@ function stopMusic() {
 }
 
 function playMusic(path) {
-    if (!soundEnabled) return;
-    if (currentMusicPath === path) return; // Keep playing if it's the same track
+    if (currentMusicPath === path) {
+        if (soundEnabled && currentMusic && currentMusic.paused) {
+            currentMusic.play().catch(e => console.warn(e));
+        }
+        return;
+    }
 
     stopMusic();
 
+    currentMusicPath = path;
     if (!path) return;
+    if (!soundEnabled) return;
 
     try {
         currentMusic = new Audio(path);
         currentMusic.loop = true;
-        currentMusic.volume = 0.08; // moderate background volume
+        currentMusic.volume = 0.08 * musicVolume; // moderate background volume * musicVolume modifier
         currentMusic.play().catch(e => console.warn(`Music playback blocked/failed for ${path}:`, e));
-        currentMusicPath = path;
     } catch (e) {
         console.error("Error in playMusic:", e);
     }
+}
+
+function setMusicVolume(volume) {
+    musicVolume = volume;
+    if (currentMusic) {
+        currentMusic.volume = 0.08 * musicVolume;
+    }
+    saveAudioSettings();
+}
+
+function setSfxVolume(volume) {
+    sfxVolume = volume;
+    if (typeof BACKGROUNDS !== 'undefined' && typeof backgroundConfigs !== 'undefined') {
+        for (const key in BACKGROUNDS) {
+            const item = BACKGROUNDS[key];
+            if (item instanceof HTMLVideoElement && !backgroundConfigs[key]?.muted) {
+                item.volume = 0.4 * sfxVolume;
+            }
+        }
+    }
+    saveAudioSettings();
+}
+
+function setSoundEnabled(enabled) {
+    soundEnabled = enabled;
+    if (typeof BACKGROUNDS !== 'undefined' && typeof backgroundConfigs !== 'undefined') {
+        for (const key in BACKGROUNDS) {
+            const item = BACKGROUNDS[key];
+            if (item instanceof HTMLVideoElement) {
+                const config = backgroundConfigs[key];
+                if (config && !config.muted) {
+                    item.muted = !soundEnabled;
+                    item.volume = 0.4 * sfxVolume;
+                }
+            }
+        }
+    }
+    if (!soundEnabled) {
+        if (currentMusic) {
+            currentMusic.pause();
+        }
+    } else {
+        if (currentMusic) {
+            currentMusic.play().catch(e => console.warn(e));
+        } else if (currentMusicPath) {
+            const path = currentMusicPath;
+            currentMusicPath = '';
+            playMusic(path);
+        }
+    }
+    saveAudioSettings();
 }
 
 function updateMusicForStage(stage) {

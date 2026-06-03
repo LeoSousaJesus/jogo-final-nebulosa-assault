@@ -47,24 +47,60 @@ function renderStages(){const g=document.getElementById('stages-grid');g.innerHT
 function showGameOver(){stopMusic();gameState.phase='gameover';showScreen('gameover-screen');document.getElementById('go-stage').textContent=gameState.stage;document.getElementById('go-kills').textContent=gameState.totalKills;document.getElementById('go-score').textContent=gameState.score;document.getElementById('go-gold').textContent=gameState.totalGold;document.getElementById('hud').classList.remove('active');document.getElementById('boss-hud').style.display='none';}
 function showVictory(){stopMusic();gameState.phase='victory';showScreen('victory-screen');document.getElementById('vic-score').textContent=gameState.score;document.getElementById('vic-kills').textContent=gameState.totalKills;document.getElementById('hud').classList.remove('active');document.getElementById('boss-hud').style.display='none';}
 function resetGame(softReset = false){gameState.stage=1;gameState.wave=0;gameState.comboCount=0;gameState.comboTimer=0;gameState.comboMultiplier=1;gameState.bossActive=false;gameState.bossDefeated=false;gameState.skillCooldowns=[0,0,0];gameState.skillActive=[0,0,0];gameState.activeSkillSlot=0;gameState.enemiesRemaining=0;gameState.screenShake=0;gameState.skinAbilityCooldown=0;gameState.skinAbilityActive=0;gameState.activePowerups={};gameState.hazardTimer=0;gameState.currentHazard=null;gameState.ambushActive=false;enemies.length=0;projectiles.length=0;particles.length=0;lootDrops.length=0;floatingTexts.length=0;waveQueue.length=0;missiles.length=0;debris.length=0;boss=null;if(softReset){gameState.gold=Math.floor(gameState.gold/2);gameState.score=Math.floor(gameState.score/2);for(let k in gameState.upgrades){gameState.upgrades[k]=Math.floor((gameState.upgrades[k]||0)/2);}gameState.level=Math.max(1,Math.floor(gameState.level/2));gameState.xp=Math.floor(gameState.xp/2);gameState.critChance=0.05+gameState.level*0.02;}else{gameState.score=0;gameState.gold=0;gameState.totalKills=0;gameState.totalGold=0;gameState.upgrades={fireRate:0,damage:0,maxHp:0,maxShield:0,speed:0,multishot:0,magnet:0,armor:0,luck:0,critDamage:0,cooldown:0,overclock:0,droneAttack:0,droneCollector:0,droneHealer:0,lifesteal:0};gameState.equippedSkills=[0,-1,-1];gameState.xp=0;gameState.level=1;gameState.critChance=0.05;}}
-function startPlaying(){gameState.phase='playing';gameState.wave=0;gameState.bossDefeated=false;gameState.bossActive=false;gameState.wavesPerStage=getWavesForStage(gameState.stage);gameState.currentRegion=GALAXY_REGIONS.findIndex(r=>r.stages.includes(gameState.stage));resetPlayer();if(gameState.upgrades.droneAttack>0)resetAssistant();updateMusicForStage(gameState.stage);showScreen('hud');document.getElementById('hud').classList.add('active');projectiles.length=0;enemies.length=0;missiles.length=0;waveQueue.length=0;boss=null;hazards=[];gameState.hazardTimer=0;document.getElementById('boss-hud').style.display='none';showWaveAnnounce('FASE '+gameState.stage+' \u2014 '+getRegionForStage(gameState.stage).name);startWave();}
+function startPlaying(){
+    gameState.phase='playing';
+    gameState.wave=0;
+    gameState.bossDefeated=false;
+    gameState.bossActive=false;
+    gameState.wavesPerStage=getWavesForStage(gameState.stage);
+    gameState.currentRegion=GALAXY_REGIONS.findIndex(r=>r.stages.includes(gameState.stage));
+    resetPlayer();
+    if(gameState.upgrades.droneAttack>0)resetAssistant();
+    updateMusicForStage(gameState.stage);
+    
+    // Reset background video time and play it from start
+    if (typeof BACKGROUNDS !== 'undefined') {
+        const region = getRegionForStage(gameState.stage);
+        const bgImg = BACKGROUNDS[region.bgImage];
+        if (bgImg instanceof HTMLVideoElement) {
+            bgImg.currentTime = 0;
+            bgImg.play().catch(e => console.log("Video playback deferred:", e));
+        }
+    }
+    
+    showScreen('hud');
+    document.getElementById('hud').classList.add('active');
+    projectiles.length=0;
+    enemies.length=0;
+    missiles.length=0;
+    waveQueue.length=0;
+    boss=null;
+    hazards=[];
+    gameState.hazardTimer=0;
+    document.getElementById('boss-hud').style.display='none';
+    showWaveAnnounce('FASE '+gameState.stage+' \u2014 '+getRegionForStage(gameState.stage).name);
+    startWave();
+}
 function showStoryIntro(){gameState.phase='story';showScreen('story-screen');const st=choice(STORY_MOTIVATIONS);const el=document.getElementById('story-text');el.textContent='';const btn=document.getElementById('btn-start-mission');btn.style.display='none';let idx=0;const tw=setInterval(()=>{el.textContent+=st[idx];idx++;if(idx>=st.length){clearInterval(tw);btn.style.display='inline-flex';}},25);}
 function toggleInGameMenu(){const m=document.getElementById('ingame-menu');if(m.classList.contains('active')){m.classList.remove('active');gameState.phase='playing';}else{m.classList.add('active');gameState.phase='paused';}}
+// --- Save & Load ---
 function saveGame(){try{localStorage.setItem('nebula_assault_save',JSON.stringify({stage:gameState.stage,score:gameState.score,gold:gameState.gold,totalKills:gameState.totalKills,totalGold:gameState.totalGold,upgrades:{...gameState.upgrades},equippedSkills:[...gameState.equippedSkills],assistantUnlocked:gameState.assistantUnlocked,selectedSkin:gameState.selectedSkin,selectedPilot:gameState.selectedPilot,unlockedSkins:[...gameState.unlockedSkins],unlockedPilots:[...gameState.unlockedPilots],highestStage:gameState.highestStage,autoFire:gameState.autoFire,difficulty:difficulty,xp:gameState.xp,level:gameState.level,critChance:gameState.critChance}));}catch(e){console.warn('Save failed',e);}}
 function loadGame(){try{const raw=localStorage.getItem('nebula_assault_save');if(!raw)return false;const s=JSON.parse(raw);gameState.stage=s.stage||1;gameState.score=s.score||0;gameState.gold=s.gold||0;gameState.totalKills=s.totalKills||0;gameState.totalGold=s.totalGold||0;const defUpgrades={fireRate:0,damage:0,maxHp:0,maxShield:0,speed:0,multishot:0,magnet:0,armor:0,luck:0,critDamage:0,cooldown:0,overclock:0,droneAttack:0,droneCollector:0,droneHealer:0,lifesteal:0};gameState.upgrades={...defUpgrades,...(s.upgrades||{})};gameState.equippedSkills=s.equippedSkills||[0,-1,-1];gameState.assistantUnlocked=s.assistantUnlocked||false;gameState.selectedSkin=s.selectedSkin||0;gameState.selectedPilot=s.selectedPilot||0;gameState.unlockedSkins=s.unlockedSkins||[0];gameState.unlockedPilots=s.unlockedPilots||[0];gameState.highestStage=s.highestStage||1;gameState.autoFire=s.autoFire!==undefined?s.autoFire:true;difficulty=s.difficulty||'normal';gameState.xp=s.xp||0;gameState.level=s.level||1;gameState.critChance=s.critChance||0.05;return true;}catch(e){console.warn('Load failed',e);return false;}}
 function hasSavedGame(){try{return!!localStorage.getItem('nebula_assault_save');}catch(e){return false;}}
 function drawRadar(){const size=120;const padding=20;const rx=canvas.width-size-padding;const ry=canvas.height/2-size/2;ctx.save();ctx.fillStyle='rgba(0,0,0,0.5)';ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(rx+size/2,ry+size/2,size/2,0,Math.PI*2);ctx.fill();ctx.stroke();const scaleX=size/canvas.width;const scaleY=size/canvas.height;ctx.fillStyle='#00e5ff';ctx.beginPath();ctx.arc(rx+player.x*scaleX,ry+player.y*scaleY,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ff1744';for(const e of enemies){ctx.beginPath();ctx.arc(rx+e.x*scaleX,ry+e.y*scaleY,2,0,Math.PI*2);ctx.fill();}if(boss){ctx.fillStyle='#e040fb';ctx.beginPath();ctx.arc(rx+boss.x*scaleX,ry+boss.y*scaleY,4,0,Math.PI*2);ctx.fill();}ctx.restore();}
 function gameLoop(){try{ctx.clearRect(0,0,canvas.width,canvas.height);applyScreenShake();drawBackground();updateStars();drawStars();if(gameState.phase==='playing'){if(keys['ShiftLeft']||keys['ShiftRight']){activateSkill();keys['ShiftLeft']=false;keys['ShiftRight']=false;}if(keys['KeyE']||keys['KeyQ']){activateSkinAbility();keys['KeyE']=false;keys['KeyQ']=false;}if(keys['Digit1']){gameState.activeSkillSlot=0;keys['Digit1']=false;}if(keys['Digit2']){gameState.activeSkillSlot=1;keys['Digit2']=false;}if(keys['Digit3']){gameState.activeSkillSlot=2;keys['Digit3']=false;}if(keys['KeyF']){gameState.autoFire=!gameState.autoFire;keys['KeyF']=false;}if(keys['Escape']){keys['Escape']=false;toggleInGameMenu();}if(keys['Tab']){keys['Tab']=false;toggleInGameMenu();}if(gameState.comboTimer>0)gameState.comboTimer--;else{gameState.comboCount=0;gameState.comboMultiplier=1;}updatePlayer();updateAssistant();updateSkills();updateProjectiles();updateMissiles();updateEnemies();if(boss)updateBoss();updateWaveSpawner();checkCollisions();updateLoot();updateParticles();updateFloatingTexts();updateHazards();updateDebris();updateHUD();drawLoot();drawProjectiles();drawMissiles();drawEnemies();if(boss)drawBoss();drawAssistant();drawPlayer();drawParticles();drawHazards();drawDebris();drawFloatingTexts();drawWaveAnnounce();drawRadar();const ds=findSkillSlot('drones');if(ds>=0&&gameState.skillActive[ds]>0){ctx.fillStyle='#b388ff';ctx.shadowColor='#b388ff';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(player.x-30+shakeX,player.y+shakeY,5,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(player.x+30+shakeX,player.y+shakeY,5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}if(!player.alive){setTimeout(()=>showGameOver(),1500);gameState.phase='dying';}if(gameState.bossDefeated){gameState.bossDefeated=false;boss=null;gameState.bossActive=false;document.getElementById('boss-hud').style.display='none';stageComplete();}}else if(gameState.phase==='dying'||gameState.phase==='winning'){updateParticles();updateLoot();updateProjectiles();updateMissiles();updateFloatingTexts();updateDebris();drawLoot();drawProjectiles();drawMissiles();drawEnemies();if(boss)drawBoss();drawParticles();drawDebris();drawFloatingTexts();}else if(gameState.phase==='paused'){drawProjectiles();drawEnemies();if(boss)drawBoss();drawPlayer();drawAssistant();drawLoot();drawMissiles();drawDebris();}}catch(err){console.error('Loop error:',err);}requestAnimationFrame(gameLoop);}
+
+// --- Event Listeners & Binding ---
 document.getElementById('btn-new-game').addEventListener('click',()=>{resetGame();showStoryIntro();});
 document.getElementById('btn-start-mission').addEventListener('click',()=>startPlaying());
-document.getElementById('btn-difficulty').addEventListener('click',()=>{const d=['easy','normal','hard'],l=['FÃCIL','NORMAL','HARDCORE'];let i=(d.indexOf(difficulty)+1)%d.length;difficulty=d[i];document.getElementById('diff-label').textContent=l[i];});
+document.getElementById('btn-difficulty').addEventListener('click',()=>{const d=['easy','normal','hard'],l=['FÃ CIL','NORMAL','HARDCORE'];let i=(d.indexOf(difficulty)+1)%d.length;difficulty=d[i];document.getElementById('diff-label').textContent=l[i];});
 document.getElementById('btn-controls').addEventListener('click',()=>showScreen('controls-screen'));
 document.getElementById('btn-back-menu').addEventListener('click',()=>showScreen('main-menu'));
 document.getElementById('btn-tips').addEventListener('click',()=>{renderTips();showScreen('tips-screen');});
 document.getElementById('btn-back-tips').addEventListener('click',()=>showScreen('main-menu'));
 document.getElementById('btn-stages').addEventListener('click',()=>{loadGame();renderStages();showScreen('stages-screen');});
 document.getElementById('btn-back-stages').addEventListener('click',()=>showScreen('main-menu'));
-document.getElementById('btn-stages-diff').addEventListener('click',()=>{const d=['easy','normal','hard'],l=['FÃCIL','NORMAL','HARDCORE'];let i=(d.indexOf(difficulty)+1)%d.length;difficulty=d[i];document.getElementById('stages-diff-label').textContent=l[i];document.getElementById('diff-label').textContent=l[i];});
+document.getElementById('btn-stages-diff').addEventListener('click',()=>{const d=['easy','normal','hard'],l=['FÃ CIL','NORMAL','HARDCORE'];let i=(d.indexOf(difficulty)+1)%d.length;difficulty=d[i];document.getElementById('stages-diff-label').textContent=l[i];document.getElementById('diff-label').textContent=l[i];});
 document.getElementById('btn-resume').addEventListener('click',()=>{gameState.phase='playing';document.getElementById('pause-menu').classList.remove('active');});
 document.getElementById('btn-quit').addEventListener('click',()=>{saveGame();stopMusic();gameState.phase='menu';document.getElementById('pause-menu').classList.remove('active');document.getElementById('hud').classList.remove('active');document.getElementById('boss-hud').style.display='none';showScreen('main-menu');updateContinueButton();});
 document.getElementById('btn-continue-mission').addEventListener('click',()=>{gameState.stage++;saveGame();startPlaying();});
@@ -72,11 +108,62 @@ document.getElementById('btn-shop-back').addEventListener('click',()=>{gameState
 document.getElementById('btn-retry').addEventListener('click',()=>{resetGame(true);showStoryIntro();});
 document.getElementById('btn-go-menu').addEventListener('click',()=>showScreen('main-menu'));
 document.getElementById('btn-vic-menu').addEventListener('click',()=>showScreen('main-menu'));
+
+// --- In-Game Menu ---
 document.getElementById('btn-igm-resume')?.addEventListener('click',()=>toggleInGameMenu());
-document.getElementById('btn-igm-autofire')?.addEventListener('click',()=>{gameState.autoFire=!gameState.autoFire;document.getElementById('btn-igm-autofire').textContent='TIRO: '+(gameState.autoFire?'AUTOMÃTICO':'MANUAL');});
+document.getElementById('btn-igm-autofire')?.addEventListener('click',()=>{gameState.autoFire=!gameState.autoFire;document.getElementById('btn-igm-autofire').textContent='TIRO: '+(gameState.autoFire?'AUTOMÃ TICO':'MANUAL');});
 document.getElementById('btn-igm-quit')?.addEventListener('click',()=>{saveGame();stopMusic();document.getElementById('ingame-menu').classList.remove('active');gameState.phase='menu';document.getElementById('hud').classList.remove('active');document.getElementById('boss-hud').style.display='none';showScreen('main-menu');updateContinueButton();});
-document.getElementById('btn-continue-game')?.addEventListener('click',()=>{if(loadGame()){const dl=['FÃCIL','NORMAL','HARDCORE'],di=['easy','normal','hard'];document.getElementById('diff-label').textContent=dl[di.indexOf(difficulty)];startPlaying();}});
-function updateContinueButton(){const btn=document.getElementById('btn-continue-game');if(!btn)return;if(hasSavedGame()){btn.style.display='inline-flex';try{const s=JSON.parse(localStorage.getItem('nebula_assault_save'));btn.querySelector('.continue-info').textContent='Fase '+s.stage+' â€¢ '+s.score+' pts';}catch(e){}}else btn.style.display='none';}
+document.getElementById('btn-continue-game')?.addEventListener('click',()=>{if(loadGame()){const dl=['FÃ CIL','NORMAL','HARDCORE'],di=['easy','normal','hard'];document.getElementById('diff-label').textContent=dl[di.indexOf(difficulty)];startPlaying();}});
+
+// --- Settings Screen Operations ---
+let settingsBackScreen = 'main-menu';
+function openSettings() {
+    document.getElementById('chk-sound-enabled').checked = soundEnabled;
+    const musicVal = Math.round(musicVolume * 100);
+    document.getElementById('slider-music-volume').value = musicVal;
+    document.getElementById('lbl-music-volume').textContent = musicVal + '%';
+    const sfxVal = Math.round(sfxVolume * 100);
+    document.getElementById('slider-sfx-volume').value = sfxVal;
+    document.getElementById('lbl-sfx-volume').textContent = sfxVal + '%';
+    showScreen('settings-screen');
+}
+
+document.getElementById('btn-settings').addEventListener('click', () => {
+    settingsBackScreen = 'main-menu';
+    openSettings();
+});
+document.getElementById('btn-igm-settings')?.addEventListener('click', () => {
+    document.getElementById('ingame-menu').classList.remove('active');
+    settingsBackScreen = 'ingame-menu';
+    openSettings();
+});
+document.getElementById('btn-back-settings').addEventListener('click', () => {
+    if (settingsBackScreen === 'ingame-menu') {
+        showScreen('hud');
+        document.getElementById('hud').classList.add('active');
+        document.getElementById('ingame-menu').classList.add('active');
+    } else {
+        showScreen(settingsBackScreen);
+    }
+});
+document.getElementById('chk-sound-enabled').addEventListener('change', function() {
+    setSoundEnabled(this.checked);
+});
+document.getElementById('slider-music-volume').addEventListener('input', function() {
+    const val = this.value;
+    document.getElementById('lbl-music-volume').textContent = val + '%';
+    setMusicVolume(val / 100);
+});
+document.getElementById('slider-sfx-volume').addEventListener('input', function() {
+    const val = this.value;
+    document.getElementById('lbl-sfx-volume').textContent = val + '%';
+    setSfxVolume(val / 100);
+});
+document.getElementById('slider-sfx-volume').addEventListener('change', function() {
+    playSound('select');
+});
+
+function updateContinueButton(){const btn=document.getElementById('btn-continue-game');if(!btn)return;if(hasSavedGame()){btn.style.display='inline-flex';try{const s=JSON.parse(localStorage.getItem('nebula_assault_save'));btn.querySelector('.continue-info').textContent='Fase '+s.stage+' \u2022 '+s.score+' pts';}catch(e){}}else btn.style.display='none';}
 const _osc=stageComplete;stageComplete=function(){saveGame();_osc();};
 loadAssets(() => {
     showScreen('main-menu');updateContinueButton();gameLoop();

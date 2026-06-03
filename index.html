@@ -26,6 +26,7 @@
                 <button id="btn-continue-game" class="menu-btn primary-btn" style="display:none;"><span class="btn-icon">💾</span> CONTINUAR JOGO <span class="continue-info" style="font-size:0.7rem;opacity:0.7;display:block;margin-top:4px;"></span></button>
                 <button id="btn-stages" class="menu-btn"><span class="btn-icon">🗺️</span> SELEÇÃO DE FASES</button>
                 <button id="btn-difficulty" class="menu-btn"><span class="btn-icon">⚙</span> DIFICULDADE: <span id="diff-label">NORMAL</span></button>
+                <button id="btn-settings" class="menu-btn"><span class="btn-icon">⚙️</span> CONFIGURAÇÕES</button>
             </div>
             <button id="btn-controls" class="top-corner-btn left" title="Controles">🎮</button>
             <button id="btn-tips" class="top-corner-btn right" title="Dicas & Estratégias">❓</button>
@@ -146,6 +147,7 @@
             <div class="igm-buttons">
                 <button id="btn-igm-resume" class="menu-btn primary-btn"><span class="btn-icon">▶</span> CONTINUAR</button>
                 <button id="btn-igm-autofire" class="menu-btn"><span class="btn-icon">🔫</span> TIRO: AUTOMÁTICO</button>
+                <button id="btn-igm-settings" class="menu-btn"><span class="btn-icon">⚙️</span> CONFIGURAÇÕES</button>
                 <button id="btn-igm-quit" class="menu-btn"><span class="btn-icon">✕</span> SAIR DA MISSÃO</button>
             </div>
         </div>
@@ -240,6 +242,44 @@
     <!-- LEVEL UP NOTIFICATION -->
     <div id="levelup-notify" class="levelup-notification" style="display:none;">
         <span class="levelup-text">⬆ NÍVEL <span id="levelup-num">2</span>!</span>
+    </div>
+
+    <!-- SETTINGS SCREEN -->
+    <div id="settings-screen" class="screen overlay">
+        <div class="settings-content">
+            <h2 class="section-title">CONFIGURAÇÕES</h2>
+            
+            <div class="settings-options">
+                <div class="settings-group">
+                    <span class="settings-label">ÁUDIO GERAL</span>
+                    <div class="settings-row">
+                        <span class="settings-option-title">Ativar Som</span>
+                        <label class="switch">
+                            <input type="checkbox" id="chk-sound-enabled" checked>
+                            <span class="slider-toggle"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <span class="settings-label">MÚSICA</span>
+                    <div class="settings-row slider-row">
+                        <input type="range" id="slider-music-volume" class="settings-slider" min="0" max="100" value="70">
+                        <span id="lbl-music-volume" class="volume-percent">70%</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <span class="settings-label">EFEITOS SONOROS (SFX)</span>
+                    <div class="settings-row slider-row">
+                        <input type="range" id="slider-sfx-volume" class="settings-slider" min="0" max="100" value="70">
+                        <span id="lbl-sfx-volume" class="volume-percent">70%</span>
+                    </div>
+                </div>
+            </div>
+
+            <button id="btn-back-settings" class="menu-btn"><span class="btn-icon">◀</span> VOLTAR</button>
+        </div>
     </div>
 
     <script src="js/audio.js"></script>

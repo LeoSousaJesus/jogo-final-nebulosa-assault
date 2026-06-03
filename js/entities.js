@@ -455,11 +455,56 @@ function drawAssistant(){
 
 function updateHazards(){
     if(gameState.phase!=='playing')return;
-    if(gameState.stage>=15){
+    
+    const isAsteroidBelt = gameState.stage <= 4;
+    
+    if(isAsteroidBelt) {
+        // Spawn frequently for Cinturão de Asteroides phases (stages 1-4)
+        if(Math.random() < 0.035) { // 3.5% chance per frame
+            const spawnType = randInt(0, 2); // 0 = top, 1 = left, 2 = right
+            const isHeavy = Math.random() < 0.3;
+            const mHp = isHeavy ? 300 : 100;
+            const size = rand(15, 30);
+            
+            let x, y, vx, vy;
+            if (spawnType === 0) {
+                // Top
+                x = rand(0, canvas.width);
+                y = -50;
+                vx = rand(-2.5, 2.5);
+                vy = rand(3.5, 7.5);
+            } else if (spawnType === 1) {
+                // Left side
+                x = -50;
+                y = rand(0, canvas.height * 0.4);
+                vx = rand(2.5, 5.5);
+                vy = rand(1.5, 4.5);
+            } else {
+                // Right side
+                x = canvas.width + 50;
+                y = rand(0, canvas.height * 0.4);
+                vx = rand(-5.5, -2.5);
+                vy = rand(1.5, 4.5);
+            }
+            
+            hazards.push({
+                x, y, vx, vy, size, hp: mHp, maxHp: mHp, isHeavy,
+                angle: rand(0, Math.PI * 2),
+                rotSpeed: rand(-0.02, 0.02)
+            });
+        }
+    } else if(gameState.stage>=15){
+        // Original hazard logic for other phases
         if(gameState.hazardTimer>0)gameState.hazardTimer--;
         else{
-            if(Math.random()<0.005){
-                gameState.currentHazard=Math.random()<0.5?'meteor':'solar';
+            const inVorticeSolar = (gameState.stage >= 9 && gameState.stage <= 12);
+            const chance = inVorticeSolar ? 0.015 : 0.005;
+            if(Math.random()<chance){
+                if(inVorticeSolar){
+                    gameState.currentHazard=Math.random()<0.8?'solar':'meteor';
+                }else{
+                    gameState.currentHazard=Math.random()<0.5?'meteor':'solar';
+                }
                 gameState.hazardTimer=600;
                 showWaveAnnounce(gameState.currentHazard==='meteor'?'\u26a0 CHUVA DE METEOROS \u26a0':'\u26a0 TEMPESTADE SOLAR \u26a0');
             }
@@ -467,7 +512,11 @@ function updateHazards(){
         if(gameState.hazardTimer>0){
             if(gameState.currentHazard==='meteor'&&Math.random()<0.05){
                 const isHeavy=Math.random()<0.3;const mHp=isHeavy?300:100;
-                hazards.push({x:rand(0,canvas.width),y:-50,vx:rand(-2,2),vy:rand(4,8),size:rand(15,30),hp:mHp,maxHp:mHp,isHeavy:isHeavy});
+                hazards.push({
+                    x:rand(0,canvas.width),y:-50,vx:rand(-2,2),vy:rand(4,8),size:rand(15,30),hp:mHp,maxHp:mHp,isHeavy:isHeavy,
+                    angle: rand(0, Math.PI * 2),
+                    rotSpeed: rand(-0.02, 0.02)
+                });
             }
             if(gameState.currentHazard==='solar'&&gameState.hazardTimer%30===0){
                 if(player.shield>0)player.shield--;else player.hp-=0.5;
@@ -476,25 +525,30 @@ function updateHazards(){
             gameState.currentHazard=null;
         }
     }
+    
     for(let i=hazards.length-1;i>=0;i--){
         let h=hazards[i];h.x+=h.vx;h.y+=h.vy;
+        if(h.rotSpeed) h.angle = (h.angle || 0) + h.rotSpeed;
         if(dist(player,h)<h.size+15){damagePlayer(30);spawnParticles(h.x,h.y,'#9e9e9e',20,4,30);hazards.splice(i,1);triggerShake(10);continue;}
-        if(h.y>canvas.height+50)hazards.splice(i,1);
+        // Remove asteroid if it moves off canvas borders
+        if(h.y>canvas.height+50 || h.x<-100 || h.x>canvas.width+100) hazards.splice(i,1);
     }
 }
 
 function drawHazards(){
     for(let h of hazards){
         const sprite = h.isHeavy ? SPRITES.asteroidHeavy : SPRITES.asteroid;
+        ctx.save();
+        ctx.translate(h.x+shakeX, h.y+shakeY);
+        ctx.rotate(h.angle || 0);
         if(sprite) {
-            ctx.save();
-            ctx.translate(h.x+shakeX, h.y+shakeY);
             ctx.drawImage(sprite, -h.size, -h.size, h.size*2, h.size*2);
-            ctx.restore();
         } else {
-            ctx.fillStyle=h.isHeavy?'#303030':'#757575';ctx.beginPath();ctx.arc(h.x+shakeX,h.y+shakeY,h.size,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle=h.isHeavy?'#303030':'#757575';ctx.beginPath();ctx.arc(0,0,h.size,0,Math.PI*2);ctx.fill();
             ctx.strokeStyle=h.isHeavy?'#111':'#424242';ctx.lineWidth=3;ctx.stroke();
         }
+        
+        // Draw cracks inside the rotated context so they spin with the asteroid
         if(h.maxHp&&h.hp<h.maxHp){
             const damageRatio=1-(h.hp/h.maxHp);
             ctx.strokeStyle=h.isHeavy?'#000':'#212121';ctx.lineWidth=1.5;ctx.beginPath();
@@ -503,13 +557,13 @@ function drawHazards(){
             for(let c=0;c<numCracks;c++){
                 const angle=(seed*(c+1)*1.3)%(Math.PI*2);
                 const len=h.size*0.8;
-                ctx.moveTo(h.x+shakeX,h.y+shakeY);
-                // Um caminho com "ziguezague" para a rachadura
-                ctx.lineTo(h.x+shakeX+Math.cos(angle)*len*0.5,h.y+shakeY+Math.sin(angle)*len*0.5);
-                ctx.lineTo(h.x+shakeX+Math.cos(angle+0.3)*len,h.y+shakeY+Math.sin(angle+0.3)*len);
+                ctx.moveTo(0,0);
+                ctx.lineTo(Math.cos(angle)*len*0.5,Math.sin(angle)*len*0.5);
+                ctx.lineTo(Math.cos(angle+0.3)*len,Math.sin(angle+0.3)*len);
             }
             ctx.stroke();
         }
+        ctx.restore();
     }
     if(gameState.currentHazard==='solar'){
         ctx.fillStyle='rgba(255,100,0,0.1)';ctx.fillRect(0,0,canvas.width,canvas.height);

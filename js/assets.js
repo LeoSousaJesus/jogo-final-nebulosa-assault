@@ -533,16 +533,48 @@ function generateFallbackSprite(key) {
     }
 }
 
-// --- Load all sprites ---
+const BACKGROUNDS = {};
+
+const backgroundSources = {
+    cinturao_asteroides: 'assets/backgrounds/Asteroid_belt_moving.mp4',
+    nebulosa_vermelha: 'assets/backgrounds/Red_star_explode.mp4',
+    vortice_solar: 'assets/backgrounds/plasma_vortex.mp4',
+    setor_proibido: 'assets/backgrounds/setor_proibido.jpeg',
+    trono_universo: 'assets/backgrounds/trono_universo.jpeg',
+    fronteira_sombria: 'assets/backgrounds/fronteira_sombria.jpeg',
+    cemiterio_naves: 'assets/backgrounds/cemiterio_naves.jpeg',
+    abismo_cosmico: 'assets/backgrounds/abismo_cosmico.jpeg',
+    dimensao_fraturada: 'assets/backgrounds/dimensao_fraturada.jpeg',
+    verdadeiro_vazio: 'assets/backgrounds/verdadeiro_vazio.jpeg'
+};
+
+const backgroundConfigs = {
+    cinturao_asteroides: { loop: true, muted: true },
+    nebulosa_vermelha: { loop: false, muted: false },
+    vortice_solar: { loop: true, muted: true }
+};
+
+// --- Load all sprites & backgrounds ---
 function loadAssets(callback) {
     let loadedCount = 0;
-    const totalAssets = Object.keys(imageSources).length;
+    const spriteKeys = Object.keys(imageSources);
+    const bgKeys = Object.keys(backgroundSources);
+    const totalAssets = spriteKeys.length + bgKeys.length;
 
     if (totalAssets === 0) {
         if (callback) callback();
         return;
     }
 
+    const checkComplete = () => {
+        loadedCount++;
+        if (loadedCount === totalAssets) {
+            console.log('All assets loaded (sprites & backgrounds)!');
+            if (callback) callback();
+        }
+    };
+
+    // Load sprite assets
     for (const [key, src] of Object.entries(imageSources)) {
         const img = new Image();
         img.src = src;
@@ -560,20 +592,57 @@ function loadAssets(callback) {
             } else {
                 SPRITES[key] = img;
             }
-            loadedCount++;
-            if (loadedCount === totalAssets) {
-                console.log('All image sprites loaded from assets!');
-                if (callback) callback();
-            }
+            checkComplete();
         };
         img.onerror = () => {
-            console.error('Failed to load image sprite:', src, 'Using fallback procedural generation.');
+            console.warn('Failed to load image sprite:', src, 'Using fallback procedural generation.');
             SPRITES[key] = generateFallbackSprite(key);
-            loadedCount++;
-            if (loadedCount === totalAssets) {
-                console.log('All image sprites loaded (with procedural fallbacks)!');
-                if (callback) callback();
-            }
+            checkComplete();
         };
+    }
+
+    // Load background assets (images or videos)
+    for (const [key, src] of Object.entries(backgroundSources)) {
+        if (src.endsWith('.mp4')) {
+            const video = document.createElement('video');
+            video.src = src;
+            
+            const config = backgroundConfigs[key] || { loop: true, muted: true };
+            video.loop = config.loop;
+            video.playsInline = true;
+            video.preload = 'auto';
+            
+            if (config.muted) {
+                video.muted = true;
+            } else {
+                const enabled = typeof soundEnabled !== 'undefined' ? soundEnabled : true;
+                const vol = typeof sfxVolume !== 'undefined' ? sfxVolume : 0.7;
+                video.muted = !enabled;
+                video.volume = 0.4 * vol;
+            }
+            
+            video.onloadeddata = () => {
+                BACKGROUNDS[key] = video;
+                checkComplete();
+            };
+            
+            video.onerror = () => {
+                console.log(`Background video not found or failed to load: ${src}. Will fallback to procedural gradients.`);
+                BACKGROUNDS[key] = null;
+                checkComplete();
+            };
+        } else {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => {
+                BACKGROUNDS[key] = img;
+                checkComplete();
+            };
+            img.onerror = () => {
+                console.log(`Background image not found or failed to load: ${src}. Will fallback to procedural gradients.`);
+                BACKGROUNDS[key] = null;
+                checkComplete();
+            };
+        }
     }
 }

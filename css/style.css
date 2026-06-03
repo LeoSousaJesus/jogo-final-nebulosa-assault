@@ -179,4 +179,27 @@ body{background:var(--bg-void);color:var(--text-primary);font-family:var(--font-
 ::-webkit-scrollbar-track{background:var(--bg-void)}
 ::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.3);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:rgba(0,229,255,0.5)}
-@media(max-width:700px){.menu-btn{min-width:260px;padding:12px 24px;font-size:0.9rem}.game-title{font-size:2.5rem}.hud-bar{width:120px}.shop-items{grid-template-columns:1fr}.skins-grid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}.boss-bar-container,.boss-bar{width:280px}.skill-slot{min-width:100px;padding:6px 10px}.ingame-menu-content{padding:24px 30px}.tips-grid{grid-template-columns:1fr}.stages-grid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}}
+
+/* SETTINGS SCREEN */
+#settings-screen{flex-direction:column;align-items:center;justify-content:center;background:var(--bg-void);z-index:65}
+.settings-content{text-align:center;display:flex;flex-direction:column;gap:20px;align-items:center;background:var(--bg-panel);border:var(--border-glow);padding:40px 50px;border-radius:8px;backdrop-filter:blur(8px);min-width:400px;max-width:90%}
+.settings-options{width:100%;display:flex;flex-direction:column;gap:20px;margin:20px 0;text-align:left}
+.settings-group{display:flex;flex-direction:column;gap:8px;width:100%}
+.settings-label{font-family:var(--font-title);font-size:0.75rem;color:var(--accent-purple);letter-spacing:0.15em;text-transform:uppercase}
+.settings-row{display:flex;align-items:center;background:var(--bg-panel-light);border:1px solid rgba(0,229,255,0.15);padding:12px 20px;border-radius:4px;justify-content:space-between}
+.settings-option-title{font-family:var(--font-ui);font-size:1rem;color:var(--text-primary)}
+.volume-percent{font-family:var(--font-title);font-size:0.9rem;color:var(--accent-cyan);text-shadow:var(--glow-cyan);min-width:45px;text-align:right}
+.switch{position:relative;display:inline-block;width:50px;height:24px}
+.switch input{opacity:0;width:0;height:0}
+.slider-toggle{position:absolute;cursor:pointer;inset:0;background-color:rgba(255,255,255,0.08);border:1px solid rgba(0,229,255,0.2);transition:.4s;border-radius:24px}
+.slider-toggle:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:var(--text-secondary);transition:.4s;border-radius:50%}
+input:checked+.slider-toggle{background-color:rgba(0,229,255,0.2);border-color:var(--accent-cyan);box-shadow:0 0 8px rgba(0,229,255,0.3)}
+input:checked+.slider-toggle:before{transform:translateX(26px);background-color:var(--accent-cyan);box-shadow:var(--glow-cyan)}
+.slider-row{gap:15px}
+.settings-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;outline:none;border:1px solid rgba(0,229,255,0.1)}
+.settings-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent-cyan);box-shadow:var(--glow-cyan);cursor:pointer;transition:transform var(--transition-fast)}
+.settings-slider::-webkit-slider-thumb:hover{transform:scale(1.2)}
+.settings-slider::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:var(--accent-cyan);box-shadow:var(--glow-cyan);cursor:pointer;transition:transform var(--transition-fast)}
+.settings-slider::-moz-range-thumb:hover{transform:scale(1.2)}
+
+@media(max-width:700px){.menu-btn{min-width:260px;padding:12px 24px;font-size:0.9rem}.game-title{font-size:2.5rem}.hud-bar{width:120px}.shop-items{grid-template-columns:1fr}.skins-grid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}.boss-bar-container,.boss-bar{width:280px}.skill-slot{min-width:100px;padding:6px 10px}.ingame-menu-content{padding:24px 30px}.tips-grid{grid-template-columns:1fr}.stages-grid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}.settings-content{min-width:280px;padding:24px 30px}}

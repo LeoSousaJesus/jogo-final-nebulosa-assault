@@ -89,12 +89,12 @@ O jogo utiliza uma vasta coleção de sprites para naves, itens e partículas. A
 
 ### Vídeos (Fundos Animados)
 
-*Os vídeos abaixo são utilizados como fundos atmosféricos de menus e fases (requer reprodução no navegador).*
+*As imagens abaixo são utilizados como fundos das fases (requer reprodução no navegador).*
 
 <details>
   <summary><b>Clique para ver: Plasma Vortex</b></summary>
   <br>
-  <img src="assets/backgrounds/vortive_solar.jpeg" controls width="400"></img>
+  <img src="assets/backgrounds/vortice_solar.jpeg" controls width="400"></img>
 </details>
 
 <details>

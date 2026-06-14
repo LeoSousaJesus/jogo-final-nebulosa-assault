@@ -94,13 +94,13 @@ O jogo utiliza uma vasta coleção de sprites para naves, itens e partículas. A
 <details>
   <summary><b>Clique para ver: Plasma Vortex</b></summary>
   <br>
-  <video src="assets/backgrounds/plasma_vortex.mp4" controls width="400"></video>
+  <img src="assets/backgrounds/vortive_solar.jpeg" controls width="400"></img>
 </details>
 
 <details>
   <summary><b>Clique para ver: Asteroid Belt Moving</b></summary>
   <br>
-  <video src="assets/backgrounds/Asteroid_belt_moving.mp4" controls width="400"></video>
+  <img src="assets/backgrounds/cinturao_asteroides.jpeg" controls width="400"></img>
 </details>
 
 <details>

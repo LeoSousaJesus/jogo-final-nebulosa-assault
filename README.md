@@ -106,7 +106,7 @@ O jogo utiliza uma vasta coleção de sprites para naves, itens e partículas. A
 <details>
   <summary><b>Clique para ver: Red Star Explode</b></summary>
   <br>
-  <video src="assets/backgrounds/Red_star_explode.mp4" controls width="400"></video>
+  <img src="assets/backgrounds/nebulosa_vermelha.jpeg" controls width="400"></img>
 </details>
 
 ---
